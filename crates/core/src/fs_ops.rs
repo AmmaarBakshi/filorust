@@ -53,3 +53,20 @@ fn format_time(systime: SystemTime) -> String {
     let datetime: DateTime<Local> = systime.into();
     datetime.format("%Y-%m-%d %H:%M:%S").to_string()
 }
+
+pub fn get_system_drives() -> Vec<String> {
+    use sysinfo::Disks;
+    
+    let mut drive_list = Vec::new();
+    let disks = Disks::new_with_refreshed_list();
+    
+    for disk in &disks {
+        // On Windows, this yields strings like "C:\", "D:\"
+        let path_str = disk.mount_point().to_string_lossy().into_owned();
+        drive_list.push(path_str);
+    }
+    
+    // Sort alphabetically so C:\ always sits on top
+    drive_list.sort();
+    drive_list
+}

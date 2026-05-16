@@ -1,5 +1,5 @@
-// /ui/appwindow.slint
-import { Button, VerticalBox, HorizontalBox, ListView } from "std-widgets.slint";
+// ui/appwindow.slint
+import { Button, VerticalBox, HorizontalBox, ScrollView } from "std-widgets.slint";
 
 export struct GuiFileItem {
     name: string,
@@ -9,102 +9,167 @@ export struct GuiFileItem {
 }
 
 export component AppWindow inherits Window {
-    title: "filorust - File Explorer";
+    title: "filorust - Modern File Explorer";
     in-out property <string> current_path: "C:\\";
     in-out property <[GuiFileItem]> files: [];
+    in-out property <[string]> drives: [];
     
-    // Callbacks to send UI interactions back to our Rust backend
     callback back_clicked();
     callback forward_clicked();
     callback up_clicked();
     callback row_double_clicked(int);
+    callback drive_clicked(string);
 
-    width: 900px;
-    height: 600px;
-    background: #1e1e1e; // Sleek modern dark theme
+    width: 1000px;
+    height: 700px;
+    background: #0d0e10; 
 
-    VerticalBox {
-        padding: 10px;
-        spacing: 10px;
+    HorizontalBox {
+        padding: 0px;
+        spacing: 0px;
 
-        // 1. Top Navigation Bar (Address Bar & Controls)
-        HorizontalBox {
-            padding: 0px;
-            spacing: 5px;
-            max-height: 35px;
-
-            Button { text: "◀"; width: 40px; clicked => { root.back_clicked(); } }
-            Button { text: "▶"; width: 40px; clicked => { root.forward_clicked(); } }
-            Button { text: "▲"; width: 40px; clicked => { root.up_clicked(); } }
+        // 1. LEFT SIDEBAR
+        Rectangle {
+            width: 240px;
+            background: #131517; 
             
-            // Address Bar
-            Rectangle {
-                background: #2d2d2d;
-                border-radius: 4px;
-                border-width: 1px;
-                border-color: #3f3f3f;
+            VerticalBox {
+                alignment: start;
+                padding: 20px;
+                spacing: 15px;
+
+                Text { 
+                    text: "Storage Hub"; 
+                    font-size: 16px; 
+                    font-weight: 700; 
+                    color: #ffffff; 
+                }
+
+                Rectangle {
+                    background: #1c1e22;
+                    height: 35px;
+                    border-radius: 6px;
+                    HorizontalBox {
+                        padding: 10px;
+                        Text { text: "🔍 Search..."; color: #626770; font-size: 13px; }
+                    }
+                }
+
+                Text { text: "SYSTEM DRIVES"; font-size: 11px; font-weight: 700; color: #4a4f58; }
                 
-                Text {
-                    text: root.current_path;
-                    color: #ffffff;
-                    vertical-alignment: center;
-                    x: 10px;
+                VerticalBox {
+                    padding: 0px;
+                    spacing: 5px;
+                    for drive in root.drives : Rectangle {
+                        height: 35px;
+                        background: #1c1e22;
+                        border-radius: 6px;
+                        
+                        HorizontalBox {
+                            padding: 8px;
+                            Text { text: "💽  " + drive; color: #e2e4e9; vertical-alignment: center; }
+                        }
+
+                        TouchArea {
+                            clicked => { root.drive_clicked(drive); }
+                        }
+                    }
                 }
             }
         }
 
-        // 2. Main Workspace Split (Sidebar + File List Grid)
-        HorizontalBox {
-            padding: 0px;
-            spacing: 10px;
+        // 2. MAIN CONTENT AREA
+        VerticalBox {
+            padding: 20px;
+            spacing: 20px;
 
-            // Left Navigation Sidebar
-            Rectangle {
-                width: 180px;
-                background: #252526;
-                border-radius: 6px;
+            HorizontalBox {
+                padding: 0px;
+                spacing: 10px;
+                max-height: 40px;
+
+                Button { text: "◀"; width: 35px; clicked => { root.back_clicked(); } } 
+                Button { text: "▶"; width: 35px; clicked => { root.forward_clicked(); } }
+                Button { text: "▲"; width: 35px; clicked => { root.up_clicked(); } }
                 
-                VerticalBox {
-                    alignment: start;
-                    padding: 8px;
-                    Text { text: "Quick Access"; font-size: 14px; font-weight: 700; color: #858585; }
-                    Button { text: "📁 Home"; }
-                    Button { text: "🖥️ This PC"; }
+                Rectangle {
+                    background: #131517;
+                    border-radius: 6px;
+                    HorizontalBox {
+                        padding: 10px;
+                        Text { text: root.current_path; color: #9aa2b1; vertical-alignment: center; font-size: 13px; }
+                    }
                 }
             }
 
-            // Right Main Directory Browser Content List
-            Rectangle {
-                background: #1a1a1a;
-                border-radius: 6px;
-                border-width: 1px;
-                border-color: #2d2d2d;
+            ScrollView {
+                VerticalBox {
+                    padding: 0px;
+                    spacing: 25px;
+                    alignment: start;
 
-                ListView {
-                    for file[index] in root.files : Rectangle {
-                        height: 35px;
-                        background: Math.mod(index, 2) == 0 ? #222222 : #1a1a1a;
+                    // --- SECTION A: FOLDERS (GRID LAYOUT) ---
+                    Text { text: "Folders"; font-size: 18px; font-weight: 700; color: #ffffff; }
+                    
+                    HorizontalLayout {
+                        spacing: 15px;
+                        
+                        for file[index] in root.files : Rectangle {
+                            // Only show if it's a directory
+                            visible: file.is_dir;
+                            width: file.is_dir ? 160px : 0px;
+                            height: file.is_dir ? 120px : 0px;
+                            background: #131517;
+                            border-radius: 12px;
+                            border-width: 1px;
+                            border-color: #22252a;
+
+                            VerticalBox {
+                                padding: 15px;
+                                alignment: space-between;
+                                Text { text: "📁"; font-size: 28px; }
+                                VerticalBox {
+                                    padding: 0px;
+                                    spacing: 2px;
+                                    Text { text: file.name; color: #ffffff; font-weight: 600; font-size: 14px; overflow: elide; }
+                                    Text { text: "Folder"; color: #626770; font-size: 11px; }
+                                }
+                            }
+
+                            TouchArea {
+                                double-clicked => { root.row_double_clicked(index); }
+                            }
+                        }
+                    }
+
+                    // --- SECTION B: FILES (MODERN ROW LIST) ---
+                    Text { text: "Files"; font-size: 18px; font-weight: 700; color: #ffffff; }
+
+                    VerticalBox {
+                        padding: 0px;
+                        spacing: 8px;
 
                         HorizontalBox {
                             padding: 5px;
-                            Text { 
-                                text: (file.is_dir ? "📁 " : "📄 ") + file.name; 
-                                color: #ffffff;
-                                vertical-alignment: center;
-                            }
-                            Text { 
-                                text: file.size_str; 
-                                color: #aaaaaa;
-                                horizontal-alignment: right;
-                                vertical-alignment: center;
-                                width: 100px;
-                            }
+                            Text { text: "Name"; color: #4a4f58; font-size: 12px; font-weight: 700; }
+                            Text { text: "Size"; color: #4a4f58; font-size: 12px; font-weight: 700; horizontal-alignment: right; width: 100px; }
                         }
 
-                        // Capture double click to open folders
-                        TouchArea {
-                            double-clicked => {
-                                root.row_double_clicked(index);
+                        for file[index] in root.files : Rectangle {
+                            // Only show if it is NOT a directory
+                            visible: !file.is_dir;
+                            height: !file.is_dir ? 45px : 0px;
+                            background: #131517;
+                            border-radius: 8px;
+
+                            HorizontalBox {
+                                padding: 12px;
+                                Text { text: "📄  " + file.name; color: #e2e4e9; vertical-alignment: center; font-size: 13px; }
+                                Text { text: file.size_str; color: #9aa2b1; vertical-alignment: center; horizontal-alignment: right; width: 100px; font-size: 13px; }
+                            }
+
+                            TouchArea {
+                                double-clicked => { root.row_double_clicked(index); }
                             }
                         }
                     }
