@@ -1,0 +1,43 @@
+﻿
+[workspace]
+
+members = [
+
+    "crates/core",
+
+    "crates/previewer",
+
+    "crates/config",
+
+]
+
+
+
+[workspace.dependencies]
+
+tokio = { version = "1.0", features = ["full"] }
+
+rayon = "1.10"
+
+log = "0.4"
+
+
+
+[package]
+
+name = "filorust"
+
+version = "0.1.0"
+
+edition = "2021"
+
+
+
+[dependencies]
+
+filorust-core = { path = "crates/core" }
+
+filorust-previewer = { path = "crates/previewer" }
+
+filorust-config = { path = "crates/config" }
+
