@@ -1,43 +1,29 @@
-﻿
+﻿# /Cargo.toml (Root Workspace)
 [workspace]
-
 members = [
-
     "crates/core",
-
     "crates/previewer",
-
     "crates/config",
-
 ]
 
-
-
 [workspace.dependencies]
-
 tokio = { version = "1.0", features = ["full"] }
-
 rayon = "1.10"
-
 log = "0.4"
 
-
-
 [package]
-
 name = "filorust"
-
 version = "0.1.0"
-
 edition = "2021"
 
-
+# Build script required by Slint to compile UI files
+build = "build.rs"
 
 [dependencies]
-
 filorust-core = { path = "crates/core" }
-
 filorust-previewer = { path = "crates/previewer" }
-
 filorust-config = { path = "crates/config" }
+slint = "1.3" # Add the Slint UI library here
 
+[build-dependencies]
+slint-build = "1.3" # Add the Slint compiler worker
